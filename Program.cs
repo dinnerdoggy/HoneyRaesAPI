@@ -62,9 +62,21 @@ app.MapGet("/employees", () =>
 });
 
 // Get single employee by id
-app.MapGet("employees/{id}", (int id) =>
+app.MapGet("/employees/{id}", (int id) =>
 {
     return employees.FirstOrDefault(emp => emp.Id == id);
+});
+
+// Get customers list contents
+app.MapGet("/customers", () =>
+{
+    return customers;
+});
+
+// Get single customer by id
+app.MapGet("/customers/{id}", (int id) =>
+{
+    return customers.FirstOrDefault(c => c.Id == id);
 });
 
 app.Run();
