@@ -43,19 +43,28 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Get servicetickets list contents
 app.MapGet("/servicetickets", () =>
 {
     return serviceTickets;
 });
 
+// Get single service ticket by id
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
     return serviceTickets.FirstOrDefault(st => st.Id == id);
 });
 
+// Get employees list contents
 app.MapGet("/employees", () =>
 {
     return employees;
+});
+
+// Get single employee by id
+app.MapGet("employees/{id}", (int id) =>
+{
+    return employees.FirstOrDefault(emp => emp.Id == id);
 });
 
 app.Run();
