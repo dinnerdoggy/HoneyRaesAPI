@@ -1,33 +1,5 @@
 using HoneyRaesAPI.Models;
 
-// Customers
-Customer customer1 = new Customer(01, "Samuel", "Hermitage TN");
-Customer customer2 = new Customer(02, "Harry", "Mt Juliet TN");
-Customer customer3 = new Customer(03, "Tanner", "Murfreesboro TN");
-
-// Service Tickets
-ServiceTicket ticket1 = new ServiceTicket(21, 02, 12, "Was a great help and deserves a raise", false, DateTime.Now);
-ServiceTicket ticket2 = new ServiceTicket(22, 03, 11, "Skippity bop-boo, ticket no. two", false, DateTime.Now);
-ServiceTicket ticket3 = new ServiceTicket(23, 01, 12, "Hippity sip-tea, ticket no. three", true, DateTime.Now);
-ServiceTicket ticket4 = new ServiceTicket(24, 02, 11, "Clorpity snorp-pour, ticket no. four", false, DateTime.Now);
-ServiceTicket ticket5 = new ServiceTicket(25, 03, 12, "Skappity clap-jive, ticket no. five", true, DateTime.Now);
-
-// List of Service Tickets
-List<ServiceTicket> serviceTickets = new List<ServiceTicket> { ticket1, ticket2, ticket3, ticket4, ticket5 };
-
-
-
-// Employees
-Employee employee1 = new Employee(11, "Will", "Kitting Supervisor", serviceTickets);
-Employee employee2 = new Employee(12, "Casey", "Dock Lead", serviceTickets);
-
-
-// List of Customers
-List<Customer> customers = new List<Customer> { customer1, customer2, customer3 };
-
-// List of Employees
-List<Employee> employees = new List<Employee> { employee1, employee2 };
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -49,35 +21,36 @@ app.UseHttpsRedirection();
 // Get servicetickets list contents
 app.MapGet("/servicetickets", () =>
 {
-    return serviceTickets;
+    return ServiceTicketObjects.serviceTickets;
 });
 
 // Get single service ticket by id
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
-    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
     if (serviceTicket == null)
     {
         return Results.NotFound();
     }
+    serviceTicket.Employee = EmployeeObjects.employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
     return Results.Ok(serviceTicket);
 });
 
 // Get employees list contents
 app.MapGet("/employees", () =>
 {
-    return employees;
+    return EmployeeObjects.employees;
 });
 
 // Get single employee by id
 app.MapGet("/employees/{id}", (int id) =>
 {
-    Employee employee =  employees.FirstOrDefault(emp => emp.Id == id);
+    Employee employee = EmployeeObjects.employees.FirstOrDefault(emp => emp.Id == id);
     if (employee == null)
     {
         return Results.NotFound();
     }
-    employee.ServiceTickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
+    employee.ServiceTickets = ServiceTicketObjects.serviceTickets.Where(st => st.EmployeeId == id).ToList();
     return Results.Ok(employee);
 
 });
@@ -85,13 +58,13 @@ app.MapGet("/employees/{id}", (int id) =>
 // Get customers list contents
 app.MapGet("/customers", () =>
 {
-    return customers;
+    return CustomersObjects.customers;
 });
 
 // Get single customer by id
 app.MapGet("/customers/{id}", (int id) =>
 {
-    Customer customer = customers.FirstOrDefault(c => c.Id == id);
+    Customer customer = CustomersObjects.customers.FirstOrDefault(c => c.Id == id);
     if (customer == null)
     {
         return Results.NotFound();
