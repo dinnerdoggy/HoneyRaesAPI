@@ -1,3 +1,5 @@
+using HoneyRaesAPI.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,29 +18,58 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+// Get servicetickets list contents
+app.MapGet("/servicetickets", () =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    return ServiceTicketObjects.serviceTickets;
+});
 
-app.MapGet("/weatherforecast", () =>
+// Get single service ticket by id
+app.MapGet("/servicetickets/{id}", (int id) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
+    if (serviceTicket == null)
+    {
+        return Results.NotFound();
+    }
+    serviceTicket.Employee = EmployeeObjects.employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
+    return Results.Ok(serviceTicket);
+});
+
+// Get employees list contents
+app.MapGet("/employees", () =>
+{
+    return EmployeeObjects.employees;
+});
+
+// Get single employee by id
+app.MapGet("/employees/{id}", (int id) =>
+{
+    Employee employee = EmployeeObjects.employees.FirstOrDefault(emp => emp.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+    employee.ServiceTickets = ServiceTicketObjects.serviceTickets.Where(st => st.EmployeeId == id).ToList();
+    return Results.Ok(employee);
+
+});
+
+// Get customers list contents
+app.MapGet("/customers", () =>
+{
+    return CustomersObjects.customers;
+});
+
+// Get single customer by id
+app.MapGet("/customers/{id}", (int id) =>
+{
+    Customer customer = CustomersObjects.customers.FirstOrDefault(c => c.Id == id);
+    if (customer == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(customer);
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
