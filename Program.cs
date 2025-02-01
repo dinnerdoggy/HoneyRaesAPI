@@ -49,6 +49,14 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
     return serviceTicket;
 });
 
+// DELETE a service ticket
+app.MapDelete("servicetickets/{id}", (int id) =>
+{
+    ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicketObjects.serviceTickets.Remove(serviceTicket);
+    return Results.NoContent();
+});
+
 // GET employees list contents
 app.MapGet("/employees", () =>
 {
