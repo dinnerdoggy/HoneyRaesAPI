@@ -36,6 +36,7 @@ app.MapGet("/servicetickets/{id}", (int id) =>
         return Results.NotFound();
     }
     serviceTicket.Employee = EmployeeObjects.employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
+    serviceTicket.Customer = CustomersObjects.customers.FirstOrDefault(c => c.Id == serviceTicket.CustomerId);
     return Results.Ok(serviceTicket);
 });
 
@@ -72,6 +73,7 @@ app.MapGet("/customers/{id}", (int id) =>
     {
         return Results.NotFound();
     }
+    customer.ServiceTickets = ServiceTicketObjects.serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
 });
 
