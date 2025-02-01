@@ -21,13 +21,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Get servicetickets list contents
+// GET servicetickets list contents
 app.MapGet("/servicetickets", () =>
 {
     return ServiceTicketObjects.serviceTickets;
 });
 
-// Get single service ticket by id
+// GET single service ticket by id
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
     ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
@@ -36,16 +36,34 @@ app.MapGet("/servicetickets/{id}", (int id) =>
         return Results.NotFound();
     }
     serviceTicket.Employee = EmployeeObjects.employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
+    serviceTicket.Customer = CustomersObjects.customers.FirstOrDefault(c => c.Id == serviceTicket.CustomerId);
     return Results.Ok(serviceTicket);
 });
 
-// Get employees list contents
+// POST a service ticket
+app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
+{
+    // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
+    serviceTicket.Id = ServiceTicketObjects.serviceTickets.Max(st => st.Id) + 1;
+    ServiceTicketObjects.serviceTickets.Add(serviceTicket);
+    return serviceTicket;
+});
+
+// DELETE a service ticket
+app.MapDelete("servicetickets/{id}", (int id) =>
+{
+    ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicketObjects.serviceTickets.Remove(serviceTicket);
+    return Results.NoContent();
+});
+
+// GET employees list contents
 app.MapGet("/employees", () =>
 {
     return EmployeeObjects.employees;
 });
 
-// Get single employee by id
+// GET single employee by id
 app.MapGet("/employees/{id}", (int id) =>
 {
     Employee employee = EmployeeObjects.employees.FirstOrDefault(emp => emp.Id == id);
@@ -58,13 +76,13 @@ app.MapGet("/employees/{id}", (int id) =>
 
 });
 
-// Get customers list contents
+// GET customers list contents
 app.MapGet("/customers", () =>
 {
     return CustomersObjects.customers;
 });
 
-// Get single customer by id
+// GET single customer by id
 app.MapGet("/customers/{id}", (int id) =>
 {
     Customer customer = CustomersObjects.customers.FirstOrDefault(c => c.Id == id);
@@ -72,6 +90,7 @@ app.MapGet("/customers/{id}", (int id) =>
     {
         return Results.NotFound();
     }
+    customer.ServiceTickets = ServiceTicketObjects.serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
 });
 
