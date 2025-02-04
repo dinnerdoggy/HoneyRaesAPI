@@ -67,6 +67,13 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
+// Mark a ticket as completed
+app.MapPut("/servicetickets/{id}/complete", (int id) =>
+{
+    ServiceTicket ticketToComplete = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
+    ticketToComplete.DateCompleted = DateTime.Today;
+});
+
 // DELETE a service ticket
 app.MapDelete("servicetickets/{id}", (int id) =>
 {
