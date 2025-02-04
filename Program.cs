@@ -40,6 +40,14 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     return Results.Ok(serviceTicket);
 });
 
+app.MapGet("servicetickets/emergencies", () =>
+{
+    List<ServiceTicket> emergencyTickets = ServiceTicketObjects.serviceTickets
+    .Where(st => st.Emergency == true)
+    .ToList();
+    return emergencyTickets;
+});
+
 // POST a service ticket
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
