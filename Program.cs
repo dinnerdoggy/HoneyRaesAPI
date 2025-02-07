@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// DRY variables
+List<ServiceTicket> serviceTickets = ServiceTicketObjects.serviceTickets;
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -24,13 +27,13 @@ app.UseHttpsRedirection();
 // GET servicetickets list contents
 app.MapGet("/servicetickets", () =>
 {
-    return ServiceTicketObjects.serviceTickets;
+    return serviceTickets;
 });
 
 // GET single service ticket by id
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
-    ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     if (serviceTicket == null)
     {
         return Results.NotFound();
@@ -40,33 +43,42 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     return Results.Ok(serviceTicket);
 });
 
-// GET tickets filtered by emergency = true
+// GET tickets filtered by Emergency = true, and by DateCompleted = null
 app.MapGet("servicetickets/emergencies", () =>
 {
-    List<ServiceTicket> emergencyTickets = ServiceTicketObjects.serviceTickets
+    List<ServiceTicket> emergencyTickets = serviceTickets
     .Where(st => st.Emergency == true)
     .ToList();
-    List<ServiceTicket> incompleteTickets = ServiceTicketObjects.serviceTickets
+    List<ServiceTicket> incompleteTickets = serviceTickets
     .Where(st => st.DateCompleted == null)
     .ToList();
     List<ServiceTicket> combinedList = emergencyTickets.Union(incompleteTickets).ToList();
     return combinedList;
 });
 
+// GET unassigned service tickets
+app.MapGet("servicetickets/unassigned", () =>
+{
+    List<ServiceTicket> unassigned = serviceTickets
+    .Where(st => st.EmployeeId == null)
+    .ToList();
+    return unassigned;
+});
+
 // POST a service ticket
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
     // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
-    serviceTicket.Id = ServiceTicketObjects.serviceTickets.Max(st => st.Id) + 1;
-    ServiceTicketObjects.serviceTickets.Add(serviceTicket);
+    serviceTicket.Id = serviceTickets.Max(st => st.Id) + 1;
+    serviceTickets.Add(serviceTicket);
     return serviceTicket;
 });
 
 // UPDATE a service ticket
 app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
 {
-    ServiceTicket ticketToUpdate = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
-    int ticketIndex = ServiceTicketObjects.serviceTickets.IndexOf(ticketToUpdate);
+    ServiceTicket ticketToUpdate = serviceTickets.FirstOrDefault(st => st.Id == id);
+    int ticketIndex = serviceTickets.IndexOf(ticketToUpdate);
     if (ticketToUpdate == null)
     {
         return Results.NotFound();
@@ -76,22 +88,22 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     {
         return Results.BadRequest();
     }
-    ServiceTicketObjects.serviceTickets[ticketIndex] = serviceTicket;
+    serviceTickets[ticketIndex] = serviceTicket;
     return Results.Ok();
 });
 
 // Mark a ticket as completed
 app.MapPut("/servicetickets/{id}/complete", (int id) =>
 {
-    ServiceTicket ticketToComplete = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicket ticketToComplete = serviceTickets.FirstOrDefault(st => st.Id == id);
     ticketToComplete.DateCompleted = DateTime.Today;
 });
 
 // DELETE a service ticket
 app.MapDelete("servicetickets/{id}", (int id) =>
 {
-    ServiceTicket serviceTicket = ServiceTicketObjects.serviceTickets.FirstOrDefault(st => st.Id == id);
-    ServiceTicketObjects.serviceTickets.Remove(serviceTicket);
+    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
+    serviceTickets.Remove(serviceTicket);
     return Results.NoContent();
 });
 
@@ -109,7 +121,7 @@ app.MapGet("/employees/{id}", (int id) =>
     {
         return Results.NotFound();
     }
-    employee.ServiceTickets = ServiceTicketObjects.serviceTickets.Where(st => st.EmployeeId == id).ToList();
+    employee.ServiceTickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
     return Results.Ok(employee);
 
 });
@@ -128,7 +140,7 @@ app.MapGet("/customers/{id}", (int id) =>
     {
         return Results.NotFound();
     }
-    customer.ServiceTickets = ServiceTicketObjects.serviceTickets.Where(st => st.CustomerId == id).ToList();
+    customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
 });
 
