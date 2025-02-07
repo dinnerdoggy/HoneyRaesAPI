@@ -40,12 +40,17 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     return Results.Ok(serviceTicket);
 });
 
+// GET tickets filtered by emergency = true
 app.MapGet("servicetickets/emergencies", () =>
 {
     List<ServiceTicket> emergencyTickets = ServiceTicketObjects.serviceTickets
     .Where(st => st.Emergency == true)
     .ToList();
-    return emergencyTickets;
+    List<ServiceTicket> incompleteTickets = ServiceTicketObjects.serviceTickets
+    .Where(st => st.DateCompleted == null)
+    .ToList();
+    List<ServiceTicket> combinedList = emergencyTickets.Union(incompleteTickets).ToList();
+    return combinedList;
 });
 
 // POST a service ticket
