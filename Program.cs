@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // DRY variables
 List<ServiceTicket> serviceTickets = ServiceTicketObjects.serviceTickets;
+List<Customer> customers = CustomersObjects.customers;
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -142,6 +143,16 @@ app.MapGet("/customers/{id}", (int id) =>
     }
     customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
+});
+
+// GET Inactive Customers (No tickets completed in 1 year)
+app.MapGet("/customers/inactive", () =>
+{
+    DateTime aYearOrMore = DateTime.Now.AddYears(-1);
+    List<Customer> inactiveCustomers = customers
+    .Where(c => c.ServiceTickets != null && c.ServiceTickets.All(dt => dt.DateCompleted <= aYearOrMore))
+    .ToList();
+    return inactiveCustomers;
 });
 
 app.Run();
