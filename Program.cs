@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // DRY variables
 List<ServiceTicket> serviceTickets = ServiceTicketObjects.serviceTickets;
 List<Customer> customers = CustomersObjects.customers;
+List<Employee> employees = EmployeeObjects.employees;
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -125,6 +126,15 @@ app.MapGet("/employees/{id}", (int id) =>
     employee.ServiceTickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
     return Results.Ok(employee);
 
+});
+
+// GET Available employees (emp's that have no tickets assigned to them)
+app.MapGet("/employees/available", () =>
+{
+    List<Employee> availableEmps = employees
+    .Where(e => e.ServiceTickets != null && e.ServiceTickets.Count == 0)
+    .ToList();
+    return availableEmps;
 });
 
 // GET customers list contents
