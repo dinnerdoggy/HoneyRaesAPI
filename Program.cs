@@ -149,6 +149,21 @@ app.MapGet("employees/{id}/customers", (int id) =>
     return empCust;
 });
 
+// GET Employee of the month (most service tickets completed)
+app.MapGet("employees/eotm", () =>
+{
+    DateTime pastMonth = DateTime.UtcNow.AddMonths(-1);
+
+    Employee eotm = employees
+        .Where(e => e.ServiceTickets != null)
+        .OrderByDescending(e => e.ServiceTickets.Count(st => st.DateCompleted >= pastMonth))
+        .FirstOrDefault();
+
+    return eotm;
+});
+
+
+
 // GET customers list contents
 app.MapGet("/customers", () =>
 {
