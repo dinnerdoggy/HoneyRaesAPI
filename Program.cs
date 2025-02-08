@@ -67,6 +67,16 @@ app.MapGet("servicetickets/unassigned", () =>
     return unassigned;
 });
 
+// GET completed tickets sorted by oldest first
+app.MapGet("servicetickets/completed", () =>
+{
+    List<ServiceTicket> completed = serviceTickets
+    .Where (st => st.DateCompleted != null)
+    .OrderBy(st => st.DateCompleted)
+    .ToList();
+    return completed;
+});
+
 // POST a service ticket
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
