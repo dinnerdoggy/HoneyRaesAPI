@@ -77,6 +77,17 @@ app.MapGet("servicetickets/completed", () =>
     return completed;
 });
 
+// GET incomplete tickets sorted by 1st: emergencies, 2nd: not assigned
+app.MapGet("servicetickets/pending", () =>
+{
+    List<ServiceTicket> pendingST = serviceTickets
+    .Where(st => st.DateCompleted == null) // null is considered the smallest value, so null sorts first
+    .OrderByDescending(st => st.Emergency)
+    .ThenBy(st => st.EmployeeId != null) // Even though null is considered the smallest value, this actually returns a bool of false, false = 0, true = 1
+    .ToList();
+    return pendingST;
+});
+
 // POST a service ticket
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
@@ -104,7 +115,7 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
-// Mark a ticket as completed
+// UPDATE a ticket as completed
 app.MapPut("/servicetickets/{id}/complete", (int id) =>
 {
     ServiceTicket ticketToComplete = serviceTickets.FirstOrDefault(st => st.Id == id);
