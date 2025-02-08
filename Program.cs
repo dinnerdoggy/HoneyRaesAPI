@@ -137,6 +137,18 @@ app.MapGet("/employees/available", () =>
     return availableEmps;
 });
 
+// GET Employees customers
+app.MapGet("employees/{id}/customers", (int id) =>
+{
+    Employee selectedEmployee = employees.FirstOrDefault(emp => emp.Id == id);
+    List<Customer> empCust = selectedEmployee.ServiceTickets
+    .Where(st => st.Customer != null)
+    .Select(st => st.Customer)
+    .Distinct()
+    .ToList();
+    return empCust;
+});
+
 // GET customers list contents
 app.MapGet("/customers", () =>
 {
