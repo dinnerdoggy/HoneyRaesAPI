@@ -67,6 +67,27 @@ app.MapGet("servicetickets/unassigned", () =>
     return unassigned;
 });
 
+// GET completed tickets sorted by oldest first
+app.MapGet("servicetickets/completed", () =>
+{
+    List<ServiceTicket> completed = serviceTickets
+    .Where (st => st.DateCompleted != null)
+    .OrderBy(st => st.DateCompleted)
+    .ToList();
+    return completed;
+});
+
+// GET incomplete tickets sorted by 1st: emergencies, 2nd: not assigned
+app.MapGet("servicetickets/pending", () =>
+{
+    List<ServiceTicket> pendingST = serviceTickets
+    .Where(st => st.DateCompleted == null) // null is considered the smallest value, so null sorts first
+    .OrderByDescending(st => st.Emergency)
+    .ThenBy(st => st.EmployeeId != null) // Even though null is considered the smallest value, this actually returns a bool of false, false = 0, true = 1
+    .ToList();
+    return pendingST;
+});
+
 // POST a service ticket
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
@@ -94,7 +115,7 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
-// Mark a ticket as completed
+// UPDATE a ticket as completed
 app.MapPut("/servicetickets/{id}/complete", (int id) =>
 {
     ServiceTicket ticketToComplete = serviceTickets.FirstOrDefault(st => st.Id == id);
@@ -136,6 +157,33 @@ app.MapGet("/employees/available", () =>
     .ToList();
     return availableEmps;
 });
+
+// GET Employees customers
+app.MapGet("employees/{id}/customers", (int id) =>
+{
+    Employee selectedEmployee = employees.FirstOrDefault(emp => emp.Id == id);
+    List<Customer> empCust = selectedEmployee.ServiceTickets
+    .Where(st => st.Customer != null)
+    .Select(st => st.Customer)
+    .Distinct()
+    .ToList();
+    return empCust;
+});
+
+// GET Employee of the month (most service tickets completed)
+app.MapGet("employees/eotm", () =>
+{
+    DateTime pastMonth = DateTime.UtcNow.AddMonths(-1);
+
+    Employee eotm = employees
+        .Where(e => e.ServiceTickets != null)
+        .OrderByDescending(e => e.ServiceTickets.Count(st => st.DateCompleted >= pastMonth))
+        .FirstOrDefault();
+
+    return eotm;
+});
+
+
 
 // GET customers list contents
 app.MapGet("/customers", () =>
